@@ -138,4 +138,36 @@ public class CreditCardServiceTest {
                 "No credit cards found for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue()),
                 exception.getMessage());
     }
+    @Test
+    public void should_return_one_credit_card_from_card_id() {
+        CreditCardEntity creditCardEntity = creditCardEntityFactory();
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntity));
+
+        CreditCardResponse response = service.getCreditCardsByCreditCardId(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId());
+
+        Assertions.assertNotNull(response);
+    }
+    @Test
+    public void should_throws_CreditCardNotFoundException_when_return_nothing_on_getByCardId() {
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of());
+        UUID creditCardId = UUID.randomUUID();
+
+        CreditCardNotFoundException exception = Assertions.assertThrows(CreditCardNotFoundException.class,
+                () -> service.getCreditCardsByCreditCardId(cardHolderEntityFactory().getId(), creditCardId));
+
+        Assertions.assertEquals(
+                "No credit cards found for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue()),
+                exception.getMessage());
+    }
+
+    @Test
+    public void should_throws_CreditCardNotFoundException_when_id_not_found_on_list() {
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntityFactory()));
+        UUID creditCardId = UUID.randomUUID();
+        CreditCardNotFoundException exception = Assertions.assertThrows(CreditCardNotFoundException.class,
+                () -> service.getCreditCardsByCreditCardId(cardHolderEntityFactory().getId(), creditCardId));
+
+        Assertions.assertEquals("No credit cards found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId,
+                uuidArgumentCaptor.getValue()), exception.getMessage());
+    }
 }
