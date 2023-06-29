@@ -7,6 +7,7 @@ import cardholder.api.analysisdto.CreditAnalysisDto;
 import cardholder.controller.request.CardHolderRequest;
 import cardholder.controller.response.CardHolderResponse;
 import cardholder.exception.CardHolderAlreadyExistsException;
+import cardholder.exception.CardHolderNotFoundException;
 import cardholder.exception.NoCreditAnalysisApprovedException;
 import cardholder.mapper.CardHolderEntityMapper;
 import cardholder.mapper.CardHolderEntityMapperImpl;
@@ -127,5 +128,32 @@ public class CardHolderServiceTest {
         CardHolderAlreadyExistsException exception = Assertions.assertThrows(CardHolderAlreadyExistsException.class,
                 () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
         Assertions.assertEquals("Card Holder already registered, check the data sent for registration", exception.getMessage());
+    }
+    @Test
+    public void should_return_all_card_holders_by_status() {
+        when(cardHolderRepository.findAllByActiveStatus(statusArgumentCaptor.capture())).thenReturn(List.of(cardHolderEntityFactory()));
+
+        List<CardHolderResponse> cardHolderResponses = cardHolderService.getCardHolderByStatus("ACTIVE");
+        Assertions.assertEquals(Status.ACTIVE, statusArgumentCaptor.getValue());
+        Assertions.assertEquals(1, cardHolderResponses.size());
+        Assertions.assertEquals("ACTIVE", cardHolderResponses.get(0).status());
+    }
+
+    @Test
+    public void should_throws_CardHolderNotFoundException_if_card_holder_not_found() {
+        List<CardHolderEntity> cardHolderEntitiesEmpty = List.of();
+        when(cardHolderRepository.findAllByActiveStatus(statusArgumentCaptor.capture())).thenReturn(cardHolderEntitiesEmpty);
+        CardHolderNotFoundException exception =
+                Assertions.assertThrows(CardHolderNotFoundException.class, () -> cardHolderService.getCardHolderByStatus("INACTIVE"));
+        Assertions.assertEquals("CardHolder not found by status INACTIVE", exception.getMessage());
+    }
+    @Test
+    public void should_return_all_card_holders() {
+        when(cardHolderRepository.findAll()).thenReturn(List.of(cardHolderEntityFactory()));
+        List<CardHolderResponse> cardHolderResponses = cardHolderService.getAllCardHolders();
+
+        Assertions.assertNotNull(cardHolderResponses);
+        Assertions.assertEquals(1, cardHolderResponses.size());
+        Assertions.assertEquals("ACTIVE", cardHolderResponses.get(0).status());
     }
 }
