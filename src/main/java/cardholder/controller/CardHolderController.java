@@ -1,11 +1,8 @@
 package cardholder.controller;
 
 import cardholder.controller.request.CardHolderRequest;
-import cardholder.controller.request.CreditCardRequest;
-import cardholder.controller.request.CreditCardUpdateLimitRequest;
 import cardholder.controller.response.CardHolderResponse;
 import cardholder.controller.response.CreditCardResponse;
-import cardholder.controller.response.CreditCardUpdateLimitResponse;
 import cardholder.service.CardHolderService;
 import cardholder.service.CreditCardService;
 import java.util.List;
@@ -15,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -65,29 +61,5 @@ public class CardHolderController {
         MDC.put("correlationId", UUID.randomUUID().toString());
         LOGGER.info("Received an post requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
         return creditCardService.createNewCreditCard(cardHolderId, request);
-    }
-
-    @GetMapping(path = "/{cardHolderId}/cards")
-    public List<CreditCardResponse> getCreditCardsByCardHolderId(@PathVariable(value = "cardHolderId") UUID cardHolderId) {
-        MDC.put("correlationId", UUID.randomUUID().toString());
-        LOGGER.info("Received an get requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
-        return creditCardService.getCreditCardsByCardHolderId(cardHolderId);
-    }
-
-    @GetMapping(path = "/{cardHolderId}/cards/{id}")
-    public CreditCardResponse getCreditCardsByCreditCard(@PathVariable(value = "cardHolderId") UUID cardHolderId,
-                                                         @PathVariable(value = "id") UUID id) {
-        MDC.put("correlationId", UUID.randomUUID().toString());
-        LOGGER.info("Received an get requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
-        return creditCardService.getCreditCardsByCreditCardId(cardHolderId, id);
-    }
-
-    @PatchMapping(path = "/{cardHolderId}/cards/{id}")
-    public CreditCardUpdateLimitResponse patchCreditCardsByCreditCard(@PathVariable(value = "cardHolderId") UUID cardHolderId,
-                                                                      @PathVariable(value = "id") UUID id,
-                                                                      @RequestBody CreditCardUpdateLimitRequest limit) {
-        MDC.put("correlationId", UUID.randomUUID().toString());
-        LOGGER.info("Received an get requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
-        return creditCardService.updateCreditCardLimit(cardHolderId, id, limit.limit());
     }
 }
