@@ -1,6 +1,7 @@
 package cardholder.exceptionhandler;
 
 import cardholder.exception.CardHolderAlreadyExistsException;
+import cardholder.exception.CardHolderNotFoundException;
 import cardholder.exception.ClientNotCorrespondsException;
 import cardholder.exception.CreditAnalysisNotFound;
 import cardholder.exception.InvalidValueException;
@@ -116,6 +117,18 @@ public class CardHolderExceptionHandler {
         problemDetail.setDetail(exception.getMessage());
         problemDetail.setInstance(URI.create("/card-holders"));
         problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CardHolderNotFoundException.class)
+    public ProblemDetail cardHolderNotFoundException(CardHolderNotFoundException exception) {
+        MDC.put(MDCKEY, UUID.randomUUID().toString());
+        LOOGER.error(String.valueOf(exception));
+        final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setType(URI.create("https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/424"));
+        problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
+        problemDetail.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
         return problemDetail;
     }
 }
