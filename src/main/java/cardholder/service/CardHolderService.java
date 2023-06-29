@@ -91,6 +91,7 @@ public class CardHolderService {
         final CardHolderEntity cardHolder = getCardHolderById(id);
         return responseMapper.from(cardHolder);
     }
+
     public CardHolderEntity getCardHolderById(UUID id) {
         final Optional<CardHolderEntity> cardHolderFoundById = repository.findById(id);
 

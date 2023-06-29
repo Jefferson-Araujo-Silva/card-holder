@@ -140,7 +140,13 @@ public class CardHolderServiceTest {
         Assertions.assertEquals(1, cardHolderResponses.size());
         Assertions.assertEquals("ACTIVE", cardHolderResponses.get(0).status());
     }
-
+    @Test
+    public void should_throw_CardHolderNotFoundException_when_try_return_all_card_holders_but_doesnt_have_an_card_holder_registered() {
+        when(cardHolderRepository.findAll()).thenReturn(List.of());
+        CardHolderNotFoundException exception =
+                Assertions.assertThrows(CardHolderNotFoundException.class, () -> cardHolderService.getAllCardHolders());
+        Assertions.assertEquals("No card holders registered", exception.getMessage());
+    }
     @Test
     public void should_throws_CardHolderNotFoundException_if_card_holder_not_found() {
         List<CardHolderEntity> cardHolderEntitiesEmpty = List.of();
@@ -168,5 +174,13 @@ public class CardHolderServiceTest {
         Assertions.assertNotNull(cardHolderResponse);
         Assertions.assertNotNull(cardHolderResponse.cardHolderId());
         Assertions.assertEquals("ACTIVE", cardHolderResponse.status());
+    }
+
+    @Test
+    public void should_throws_CardHolderNotFoundException_if_card_holder_not_found_by_id() {
+        when(cardHolderRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.empty());
+        CardHolderNotFoundException exception = Assertions.assertThrows(CardHolderNotFoundException.class,
+                () -> cardHolderService.findCardHolderById(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf")));
+        Assertions.assertEquals("CardHolder not found by id a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf", exception.getMessage());
     }
 }
