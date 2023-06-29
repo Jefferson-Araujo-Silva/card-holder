@@ -1,8 +1,11 @@
 package cardholder.controller;
 
 import cardholder.controller.request.CardHolderRequest;
+import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CardHolderResponse;
+import cardholder.controller.response.CreditCardResponse;
 import cardholder.service.CardHolderService;
+import cardholder.service.CreditCardService;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class CardHolderController {
     private static final String PATH_DEFAULT_ENDPOINT = "v1.0/card-holders";
     private static final Logger LOGGER = LoggerFactory.getLogger(CardHolderController.class);
     private final CardHolderService cardHolderService;
+    private final CreditCardService creditCardService;
 
     @PostMapping
     public CardHolderResponse postNewCardHolder(@RequestBody CardHolderRequest request) {
@@ -51,5 +55,12 @@ public class CardHolderController {
         MDC.put("correlationId", UUID.randomUUID().toString());
         LOGGER.info("Received an get requisition at endpoint %s/%s".formatted(PATH_DEFAULT_ENDPOINT, id));
         return cardHolderService.findCardHolderById(id);
+    }
+
+    @PostMapping(path = "/{cardHolderId}/cards")
+    public CreditCardResponse postNewCard(@PathVariable(value = "cardHolderId") UUID cardHolderId, @RequestBody CreditCardRequest request) {
+        MDC.put("correlationId", UUID.randomUUID().toString());
+        LOGGER.info("Received an post requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
+        return creditCardService.createNewCreditCard(cardHolderId, request);
     }
 }
