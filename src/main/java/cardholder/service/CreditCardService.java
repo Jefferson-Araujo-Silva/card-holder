@@ -2,6 +2,7 @@ package cardholder.service;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
+import cardholder.exception.CreditCardNotFoundException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
@@ -14,6 +15,7 @@ import cardholder.repository.entity.CreditCardRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -64,5 +66,14 @@ public class CreditCardService {
     }
     private CreditCardEntity saveCreditCard(CreditCardEntity entity) {
         return repository.save(entity);
+    }
+
+    public List<CreditCardResponse> getCreditCardsByCardHolderId(UUID cardHolderId) {
+        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
+        if (creditCardEntities.isEmpty()) {
+            throw new CreditCardNotFoundException(
+                    "No credit cards found for card holder with id %s, or card holder not exists".formatted(cardHolderId));
+        }
+        return creditCardEntities.stream().map(responseMapper::from).collect(Collectors.toList());
     }
 }

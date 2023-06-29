@@ -4,6 +4,7 @@ import cardholder.exception.CardHolderAlreadyExistsException;
 import cardholder.exception.CardHolderNotFoundException;
 import cardholder.exception.ClientNotCorrespondsException;
 import cardholder.exception.CreditAnalysisNotFound;
+import cardholder.exception.CreditCardNotFoundException;
 import cardholder.exception.InvalidValueException;
 import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoCreditAnalysisApprovedException;
@@ -158,6 +159,20 @@ public class CardHolderExceptionHandler {
         problemDetail.setStatus(HttpStatus.BAD_REQUEST.value());
         problemDetail.setDetail(exception.getMessage());
         problemDetail.setInstance(URI.create("/card-holders/idCardHolder/cards/id"));
+        problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CreditCardNotFoundException.class)
+    public ProblemDetail creditCardNotFoundException(CreditCardNotFoundException exception) {
+        MDC.put("correlationId", UUID.randomUUID().toString());
+        LOOGER.error(String.valueOf(exception));
+        final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
+        problemDetail.setType(URI.create("http://example.com/not-found"));
+        problemDetail.setTitle("Credit analysis not found");
+        problemDetail.setStatus(HttpStatus.NOT_FOUND.value());
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setInstance(URI.create("/card-holders"));
         problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
         return problemDetail;
     }
