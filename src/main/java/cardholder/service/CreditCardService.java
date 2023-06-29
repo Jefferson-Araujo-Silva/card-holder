@@ -16,8 +16,8 @@ import cardholder.repository.entity.CreditCardEntity;
 import cardholder.repository.entity.CreditCardRepository;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -67,55 +67,7 @@ public class CreditCardService {
             throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
         }
     }
-
-    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested,
-                                                            UUID creditCardId) {
-        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId, creditCardId);
-        BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
-        if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
-            throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
-        }
-    }
-
-
     private CreditCardEntity saveCreditCard(CreditCardEntity entity) {
         return repository.save(entity);
-    }
-
-    public List<CreditCardResponse> getCreditCardsByCardHolderId(UUID cardHolderId) {
-        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
-        if (creditCardEntities.isEmpty()) {
-            throw new CreditCardNotFoundException(
-                    "No credit cards found for card holder with id %s, or card holder not exists".formatted(cardHolderId));
-        }
-        return creditCardEntities.stream().map(responseMapper::from).collect(Collectors.toList());
-    }
-
-    public CreditCardResponse getCreditCardsByCreditCardId(UUID cardHolderId, UUID creditCardId) {
-        final CreditCardEntity entity = getCreditCardEntityByCreditCardId(cardHolderId, creditCardId);
-        return responseMapper.from(entity);
-    }
-
-    private CreditCardEntity getCreditCardEntityByCreditCardId(UUID cardHolderId, UUID creditCardId) {
-        final Optional<CreditCardEntity> creditCardEntity = repository.findById(creditCardId);
-
-        return creditCardEntity.stream().filter(e -> e.getId().equals(creditCardId)).findFirst().orElseThrow(() -> new CreditCardNotFoundException(
-                "No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId, cardHolderId)));
-    }
-
-    public CreditCardUpdateLimitResponse updateCreditCardLimit(UUID cardHolderId, UUID creditCardId, BigDecimal limit) {
-        verifyLimitToBeUpdated(cardHolderId, creditCardId, limit);
-        final CreditCardEntity creditCardEntity = getCreditCardEntityByCreditCardId(cardHolderId, creditCardId);
-        return CreditCardUpdateLimitResponse.builder().cardId(creditCardEntity.getId()).updatedLimit(creditCardEntity.getCreditLimit()).build();
-    }
-
-    private void verifyLimitToBeUpdated(UUID cardHolderId, UUID creditCardId, BigDecimal limit) {
-        if (limit.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new NegativeValueException("Limit requested is less than zero");
-        }
-        final CardHolderEntity cardHolder = getCardHolderById(cardHolderId);
-        verifyLimitRequestedComparedByCreditLimit(limit, cardHolder.getCreditLimit());
-        calculateCreditLimitAvailableForCardHolder(cardHolderId, cardHolder.getCreditLimit(), limit, creditCardId);
-        repository.updateLimitFromId(creditCardId, limit);
     }
 }
