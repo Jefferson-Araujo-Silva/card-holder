@@ -18,6 +18,7 @@ import cardholder.repository.entity.CardHolderEntity;
 import cardholder.util.Status;
 import feign.FeignException;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -84,5 +85,19 @@ public class CardHolderService {
             throw new CardHolderNotFoundException("No card holders registered");
         }
         return cardHolderResponses;
+    }
+
+    public CardHolderResponse findCardHolderById(UUID id) {
+        final CardHolderEntity cardHolder = getCardHolderById(id);
+        return responseMapper.from(cardHolder);
+    }
+    public CardHolderEntity getCardHolderById(UUID id) {
+        final Optional<CardHolderEntity> cardHolderFoundById = repository.findById(id);
+
+        if (cardHolderFoundById.isEmpty()) {
+            throw new CardHolderNotFoundException("CardHolder not found by id %s".formatted(id));
+        }
+
+        return cardHolderFoundById.get();
     }
 }

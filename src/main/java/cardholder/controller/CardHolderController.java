@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -43,5 +44,12 @@ public class CardHolderController {
         MDC.put("correlationId", UUID.randomUUID().toString());
         LOGGER.info("Received an post requisition at get endpoint %s".formatted(PATH_DEFAULT_ENDPOINT));
         return cardHolderService.getAllCardHolders();
+    }
+
+    @GetMapping(path = "/{id}")
+    public CardHolderResponse getCardHolderById(@PathVariable(value = "id") UUID id) {
+        MDC.put("correlationId", UUID.randomUUID().toString());
+        LOGGER.info("Received an get requisition at endpoint %s/%s".formatted(PATH_DEFAULT_ENDPOINT, id));
+        return cardHolderService.findCardHolderById(id);
     }
 }
