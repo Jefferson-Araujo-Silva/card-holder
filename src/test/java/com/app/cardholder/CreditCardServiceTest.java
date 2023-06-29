@@ -4,9 +4,6 @@ import static org.mockito.Mockito.when;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
-import cardholder.controller.response.CreditCardUpdateLimitResponse;
-import cardholder.exception.CreditCardNotFoundException;
-import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
