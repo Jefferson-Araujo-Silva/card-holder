@@ -4,6 +4,7 @@ import static org.mockito.Mockito.when;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
+import cardholder.exception.CreditCardNotFoundException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
@@ -116,5 +117,25 @@ public class CreditCardServiceTest {
                 Assertions.assertThrows(NoLimitAvailableException.class, () -> service.createNewCreditCard(cardHolder.getId(), request));
 
         Assertions.assertEquals("No limit available for card holder with id %s".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
+    }
+    @Test
+    public void should_return_all_credit_cards_from_card_holder_id() {
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntityFactory()));
+
+        List<CreditCardResponse> response = service.getCreditCardsByCardHolderId(cardHolderEntityFactory().getId());
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(1, response.size());
+    }
+    @Test
+    public void should_throws_CreditCardNotFoundException_when_return_nothing() {
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of());
+
+        CreditCardNotFoundException exception = Assertions.assertThrows(CreditCardNotFoundException.class,
+                () -> service.getCreditCardsByCardHolderId(cardHolderEntityFactory().getId()));
+
+        Assertions.assertEquals(
+                "No credit cards found for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue()),
+                exception.getMessage());
     }
 }
