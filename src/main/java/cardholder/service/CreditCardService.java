@@ -79,4 +79,20 @@ public class CreditCardService {
         }
         return creditCardEntities.stream().map(responseMapper::from).collect(Collectors.toList());
     }
+
+    public CreditCardResponse getCreditCardsByCreditCardId(UUID cardHolderId, UUID creditCardId) {
+        final CreditCardEntity entity = getCreditCardEntityByCreditCardId(cardHolderId, creditCardId);
+        return responseMapper.from(entity);
+    }
+
+    private CreditCardEntity getCreditCardEntityByCreditCardId(UUID cardHolderId, UUID creditCardId) {
+        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
+        if (creditCardEntities.isEmpty()) {
+            throw new CreditCardNotFoundException(
+                    "No credit cards found for card holder with id %s, or card holder not exists".formatted(cardHolderId));
+        }
+
+        return creditCardEntities.stream().filter(e -> e.getId().equals(creditCardId)).findFirst().orElseThrow(() -> new CreditCardNotFoundException(
+                "No credit cards found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId, cardHolderId)));
+    }
 }
