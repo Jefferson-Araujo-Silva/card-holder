@@ -122,7 +122,9 @@
 					<compilerArgs>
 						<compilerArg>-Amapstruct.defaultComponentModel=spring</compilerArg>
 					</compilerArgs>
-				</configuration>
+                    <source>16</source>
+                    <target>16</target>
+                </configuration>
 			</plugin>
 		 	<plugin>
 				<groupId>org.jacoco</groupId>
