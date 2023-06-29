@@ -65,21 +65,6 @@ public class CreditCardService {
         }
     }
 
-    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, UUID creditCardId,
-                                                            BigDecimal creditLimitRequested) {
-        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
-        final List<CreditCardEntity> creditCardEntityListWithoutCreditCardIdPassed =
-                creditCardEntities.stream().filter(creditCardEntity -> !creditCardEntity.getId().equals(creditCardId)).toList();
-
-        BigDecimal creditLimitAvailable = creditLimitForCardHolder;
-        for (CreditCardEntity creditCardEntity : creditCardEntityListWithoutCreditCardIdPassed) {
-            creditLimitAvailable = creditLimitAvailable.subtract(creditCardEntity.getCreditLimit());
-        }
-        if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
-            throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
-        }
-    }
-
     private CreditCardEntity saveCreditCard(CreditCardEntity entity) {
         return repository.save(entity);
     }
