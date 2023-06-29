@@ -2,9 +2,6 @@ package cardholder.service;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
-import cardholder.controller.response.CreditCardUpdateLimitResponse;
-import cardholder.exception.CreditCardNotFoundException;
-import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
@@ -17,8 +14,6 @@ import cardholder.repository.entity.CreditCardRepository;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
