@@ -25,6 +25,7 @@ import cardholder.util.Status;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -111,8 +112,8 @@ public class CardHolderServiceTest {
 
     @Test
     public void should_throws_NoCreditAnalysisApprovedException_if_credit_analysis_is_not_approved() {
-        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenReturn(List.of(creditAnalysisDtoFactory()
-                .toBuilder().id(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf")).approved(false).build()));
+        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenReturn(
+                List.of(creditAnalysisDtoFactory().toBuilder().id(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf")).approved(false).build()));
 
         NoCreditAnalysisApprovedException exception = Assertions.assertThrows(NoCreditAnalysisApprovedException.class,
                 () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
@@ -129,6 +130,7 @@ public class CardHolderServiceTest {
                 () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
         Assertions.assertEquals("Card Holder already registered, check the data sent for registration", exception.getMessage());
     }
+
     @Test
     public void should_return_all_card_holders_by_status() {
         when(cardHolderRepository.findAllByActiveStatus(statusArgumentCaptor.capture())).thenReturn(List.of(cardHolderEntityFactory()));
@@ -147,6 +149,7 @@ public class CardHolderServiceTest {
                 Assertions.assertThrows(CardHolderNotFoundException.class, () -> cardHolderService.getCardHolderByStatus("INACTIVE"));
         Assertions.assertEquals("CardHolder not found by status INACTIVE", exception.getMessage());
     }
+
     @Test
     public void should_return_all_card_holders() {
         when(cardHolderRepository.findAll()).thenReturn(List.of(cardHolderEntityFactory()));
@@ -155,5 +158,15 @@ public class CardHolderServiceTest {
         Assertions.assertNotNull(cardHolderResponses);
         Assertions.assertEquals(1, cardHolderResponses.size());
         Assertions.assertEquals("ACTIVE", cardHolderResponses.get(0).status());
+    }
+
+    @Test
+    public void should_return_an_card_holder_by_id() {
+        when(cardHolderRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.of(cardHolderEntityFactory()));
+        CardHolderResponse cardHolderResponse = cardHolderService.findCardHolderById(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf"));
+
+        Assertions.assertNotNull(cardHolderResponse);
+        Assertions.assertNotNull(cardHolderResponse.cardHolderId());
+        Assertions.assertEquals("ACTIVE", cardHolderResponse.status());
     }
 }
