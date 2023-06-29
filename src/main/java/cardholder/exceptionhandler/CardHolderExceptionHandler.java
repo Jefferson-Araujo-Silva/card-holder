@@ -5,7 +5,9 @@ import cardholder.exception.CardHolderNotFoundException;
 import cardholder.exception.ClientNotCorrespondsException;
 import cardholder.exception.CreditAnalysisNotFound;
 import cardholder.exception.InvalidValueException;
+import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoCreditAnalysisApprovedException;
+import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.NullValuesException;
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -129,6 +131,34 @@ public class CardHolderExceptionHandler {
         problemDetail.setType(URI.create("https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Status/424"));
         problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
         problemDetail.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(NoLimitAvailableException.class)
+    public ProblemDetail noLimitAvailableException(NoLimitAvailableException exception) {
+        MDC.put(MDCKEY, UUID.randomUUID().toString());
+        LOOGER.error(String.valueOf(exception));
+        final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.UNPROCESSABLE_ENTITY);
+        problemDetail.setType(URI.create("http://example.com/already-exists"));
+        problemDetail.setTitle("No limit available to card holder");
+        problemDetail.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setInstance(URI.create("/card-holders/id/cards"));
+        problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(NegativeValueException.class)
+    public ProblemDetail negativeValueException(NegativeValueException exception) {
+        MDC.put(MDCKEY, UUID.randomUUID().toString());
+        LOOGER.error(String.valueOf(exception));
+        final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setType(URI.create("http://example.com/not-found"));
+        problemDetail.setTitle("Negative value");
+        problemDetail.setStatus(HttpStatus.BAD_REQUEST.value());
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setInstance(URI.create("/card-holders/idCardHolder/cards/id"));
+        problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
         return problemDetail;
     }
 }
