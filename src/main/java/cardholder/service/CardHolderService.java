@@ -5,6 +5,7 @@ import cardholder.api.analysisdto.CreditAnalysisDto;
 import cardholder.controller.request.CardHolderRequest;
 import cardholder.controller.response.CardHolderResponse;
 import cardholder.exception.CardHolderAlreadyExistsException;
+import cardholder.exception.CardHolderNotFoundException;
 import cardholder.exception.ClientNotCorrespondsException;
 import cardholder.exception.CreditAnalysisNotFound;
 import cardholder.exception.NoCreditAnalysisApprovedException;
@@ -14,7 +15,9 @@ import cardholder.mapper.CardHolderResponseMapper;
 import cardholder.model.CardHolderModel;
 import cardholder.repository.CardHolderRepository;
 import cardholder.repository.entity.CardHolderEntity;
+import cardholder.util.Status;
 import feign.FeignException;
+import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -64,5 +67,22 @@ public class CardHolderService {
         } catch (DataIntegrityViolationException e) {
             throw new CardHolderAlreadyExistsException("Card Holder already registered, check the data sent for registration");
         }
+    }
+
+    public List<CardHolderResponse> getCardHolderByStatus(String activeStatus) {
+        final Status status = Status.valueOf(activeStatus);
+        final List<CardHolderEntity> entity = repository.findAllByActiveStatus(status);
+        if (entity.size() == 0) {
+            throw new CardHolderNotFoundException("CardHolder not found by status %s".formatted(activeStatus));
+        }
+        return entity.stream().map(responseMapper::from).toList();
+    }
+
+    public List<CardHolderResponse> getAllCardHolders() {
+        final List<CardHolderResponse> cardHolderResponses = repository.findAll().stream().map(responseMapper::from).toList();
+        if (cardHolderResponses.size() == 0) {
+            throw new CardHolderNotFoundException("No card holders registered");
+        }
+        return cardHolderResponses;
     }
 }

@@ -31,6 +31,7 @@ public class CardHolderController {
         LOGGER.info("Received an post requisition at endpoint %s".formatted(PATH_DEFAULT_ENDPOINT));
         return cardHolderService.createNewCardHolder(request);
     }
+
     @GetMapping
     public List<CardHolderResponse> getCardHolderBy(@RequestParam(value = "activeStatus", required = false) String activeStatus) {
         if (activeStatus != null) {
