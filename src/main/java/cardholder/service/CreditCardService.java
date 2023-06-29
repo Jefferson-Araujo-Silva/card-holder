@@ -2,7 +2,9 @@ package cardholder.service;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
+import cardholder.controller.response.CreditCardUpdateLimitResponse;
 import cardholder.exception.CreditCardNotFoundException;
+import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
@@ -67,6 +69,22 @@ public class CreditCardService {
         }
     }
 
+    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, UUID creditCardId,
+                                                            BigDecimal creditLimitRequested) {
+        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
+        final List<CreditCardEntity> creditCardEntityListWithoutCreditCardIdPassed =
+                creditCardEntities.stream().filter(creditCardEntity -> !creditCardEntity.getId().equals(creditCardId)).toList();
+
+        BigDecimal creditLimitAvailable = creditLimitForCardHolder;
+        for (CreditCardEntity creditCardEntity : creditCardEntityListWithoutCreditCardIdPassed) {
+            creditLimitAvailable = creditLimitAvailable.subtract(creditCardEntity.getCreditLimit());
+        }
+        if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
+            throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
+        }
+    }
+
+
     private CreditCardEntity saveCreditCard(CreditCardEntity entity) {
         return repository.save(entity);
     }
@@ -94,5 +112,21 @@ public class CreditCardService {
 
         return creditCardEntities.stream().filter(e -> e.getId().equals(creditCardId)).findFirst().orElseThrow(() -> new CreditCardNotFoundException(
                 "No credit cards found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId, cardHolderId)));
+    }
+
+    public CreditCardUpdateLimitResponse updateCreditCardLimit(UUID cardHolderId, UUID creditCardId, BigDecimal limit) {
+        verifyLimitToBeUpdated(cardHolderId, creditCardId, limit);
+        final CreditCardEntity creditCardEntity = getCreditCardEntityByCreditCardId(cardHolderId, creditCardId);
+        return CreditCardUpdateLimitResponse.builder().cardId(creditCardEntity.getId()).updatedLimit(creditCardEntity.getCreditLimit()).build();
+    }
+
+    private void verifyLimitToBeUpdated(UUID cardHolderId, UUID creditCardId, BigDecimal limit) {
+        if (limit.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new NegativeValueException("Limit requested is less than zero");
+        }
+        final CardHolderEntity cardHolder = getCardHolderById(cardHolderId);
+        verifyLimitRequestedComparedByCreditLimit(limit, cardHolder.getCreditLimit());
+        calculateCreditLimitAvailableForCardHolder(cardHolderId, cardHolder.getCreditLimit(), creditCardId, limit);
+        repository.updateLimitFromId(creditCardId, limit);
     }
 }
