@@ -4,7 +4,9 @@ import static org.mockito.Mockito.when;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
+import cardholder.controller.response.CreditCardUpdateLimitResponse;
 import cardholder.exception.CreditCardNotFoundException;
+import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
@@ -65,8 +67,7 @@ public class CreditCardServiceTest {
 
     public static CreditCardEntity creditCardEntityFactory() {
         return CreditCardEntity.builder().cardHolder(CardHolderServiceTest.cardHolderEntityFactory()).cardNumber("4483346541790809").cvv("123")
-                .dueDate(
-                        LocalDate.parse("2028-01-01")).creditLimit(new BigDecimal("100")).build();
+                .dueDate(LocalDate.parse("2028-01-01")).creditLimit(new BigDecimal("100")).build();
     }
 
     public static CardHolderEntity cardHolderEntityFactory() {
@@ -118,6 +119,7 @@ public class CreditCardServiceTest {
 
         Assertions.assertEquals("No limit available for card holder with id %s".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
     }
+
     @Test
     public void should_return_all_credit_cards_from_card_holder_id() {
         when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntityFactory()));
@@ -127,6 +129,7 @@ public class CreditCardServiceTest {
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
     }
+
     @Test
     public void should_throws_CreditCardNotFoundException_when_return_nothing() {
         when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of());
@@ -138,6 +141,7 @@ public class CreditCardServiceTest {
                 "No credit cards found for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue()),
                 exception.getMessage());
     }
+
     @Test
     public void should_return_one_credit_card_from_card_id() {
         CreditCardEntity creditCardEntity = creditCardEntityFactory();
@@ -147,6 +151,7 @@ public class CreditCardServiceTest {
 
         Assertions.assertNotNull(response);
     }
+
     @Test
     public void should_throws_CreditCardNotFoundException_when_return_nothing_on_getByCardId() {
         when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of());
@@ -169,5 +174,37 @@ public class CreditCardServiceTest {
 
         Assertions.assertEquals("No credit cards found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId,
                 uuidArgumentCaptor.getValue()), exception.getMessage());
+    }
+
+    @Test
+    public void should_atualize_credit_card_limit() {
+        CreditCardEntity creditCardEntity = creditCardEntityFactory();
+        CreditCardEntity creditCardEntity2 = creditCardEntityFactory();
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntity, creditCardEntity2));
+        when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolderEntityFactory());
+        CreditCardUpdateLimitResponse response =
+                service.updateCreditCardLimit(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId(), new BigDecimal("10"));
+
+        Assertions.assertNotNull(response);
+        Assertions.assertEquals(creditCardEntity.getId(), response.cardId());
+    }
+
+    @Test
+    public void should_throw_NegativeValueException_when_is_passed_an_limit_with_negative_value() {
+        CreditCardEntity creditCardEntity = creditCardEntityFactory();
+        NegativeValueException exception = Assertions.assertThrows(NegativeValueException.class,
+                () -> service.updateCreditCardLimit(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId(), new BigDecimal("-1000")));
+        Assertions.assertEquals("Limit requested is less than zero", exception.getMessage());
+    }
+    @Test
+    public void should_throws_NoLimitAvailableException_when_try_to_update_limit_more_than_available() {
+        CreditCardEntity creditCardEntity = creditCardEntityFactory();
+        CreditCardEntity creditCardEntity2 = creditCardEntityFactory();
+        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntity, creditCardEntity2));
+        when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolderEntityFactory());
+        NoLimitAvailableException exception =
+                Assertions.assertThrows(NoLimitAvailableException.class, ()-> service.updateCreditCardLimit(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId(), new BigDecimal("1000")));
+
+        Assertions.assertEquals("No limit available for card holder with id %s".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
     }
 }
