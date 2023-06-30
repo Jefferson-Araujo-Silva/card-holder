@@ -10,6 +10,7 @@ import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoCreditAnalysisApprovedException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.NullValuesException;
+import cardholder.exception.ThresholdValueRequestException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -173,6 +174,19 @@ public class CardHolderExceptionHandler {
         problemDetail.setStatus(HttpStatus.NOT_FOUND.value());
         problemDetail.setDetail(exception.getMessage());
         problemDetail.setInstance(URI.create("/card-holders"));
+        problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
+        return problemDetail;
+    }
+    @ExceptionHandler(ThresholdValueRequestException.class)
+    public ProblemDetail thresholdValueRequestException(ThresholdValueRequestException exception) {
+        MDC.put("correlationId", UUID.randomUUID().toString());
+        LOOGER.error(String.valueOf(exception));
+        final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+        problemDetail.setType(URI.create("http://example.com/bad-request"));
+        problemDetail.setTitle("Invalid value");
+        problemDetail.setStatus(HttpStatus.NOT_FOUND.value());
+        problemDetail.setDetail(exception.getMessage());
+        problemDetail.setInstance(URI.create("/card-holders/idCardHolder/cards/id"));
         problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
         return problemDetail;
     }
