@@ -143,6 +143,23 @@
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<excludes>
+						<exclude>**/CardHolderApplication*</exclude>
+						<exclude>**/controller/**</exclude>
+						<exclude>**/exceptionhandler/**</exclude>
+						<exclude>**/logger/**</exclude>
+						<exclude>**/api/**</exclude>
+						<exclude>**/util/**</exclude>
+						<exclude>**/CardHolderEntityMapperImpl*</exclude>
+						<exclude>**/CardHolderModelMapperImpl*</exclude>
+						<exclude>**/CardHolderResponseMapperImpl*</exclude>
+						<exclude>**/model/**</exclude>
+						<exclude>**/entity/**</exclude>
+						<exclude>**/exception/**</exclude>
+						<exclude>**/mapper/**</exclude>
+					</excludes>
+				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
