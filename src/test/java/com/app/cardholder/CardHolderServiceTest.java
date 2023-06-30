@@ -238,4 +238,13 @@ public class CardHolderServiceTest {
 
         Assertions.assertThrows(FeignException.class, () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
     }
+
+    @Test
+    public void should_throws_CardHolderNotFoundException_if_card_holder_not_found() {
+        List<CardHolderEntity> cardHolderEntitiesEmpty = List.of();
+        when(cardHolderRepository.findAllByActiveStatus(statusArgumentCaptor.capture())).thenReturn(cardHolderEntitiesEmpty);
+        CardHolderNotFoundException exception =
+                Assertions.assertThrows(CardHolderNotFoundException.class, () -> cardHolderService.getCardHolderByStatus("INACTIVE"));
+        Assertions.assertEquals("CardHolder not found by status INACTIVE", exception.getMessage());
+    }
 }
