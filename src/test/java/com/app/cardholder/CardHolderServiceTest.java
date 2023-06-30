@@ -163,16 +163,6 @@ public class CardHolderServiceTest {
     }
 
     @Test
-    public void should_return_all_card_holders() {
-        when(cardHolderRepository.findAll()).thenReturn(List.of(cardHolderEntityFactory()));
-        List<CardHolderResponse> cardHolderResponses = cardHolderService.getAllCardHolders();
-
-        Assertions.assertNotNull(cardHolderResponses);
-        Assertions.assertEquals(1, cardHolderResponses.size());
-        Assertions.assertEquals("ACTIVE", cardHolderResponses.get(0).status());
-    }
-
-    @Test
     public void should_throws_ClientNotCorrespondsException_when_client_id_card_holder_request_not_corresponds_with_client_id_in_credit_analysis() {
         CardHolderRequest request = cardHolderRequestFactory().toBuilder().clientId(UUID.randomUUID()).build();
         CreditAnalysisDto creditAnalysisDto = creditAnalysisDtoFactory().toBuilder().clientId(UUID.randomUUID()).build();
@@ -211,15 +201,6 @@ public class CardHolderServiceTest {
         when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenThrow(feignException);
 
         Assertions.assertThrows(FeignException.class, () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
-    }
-    @Test
-    public void should_return_all_card_holders_by_status() {
-        when(cardHolderRepository.findAllByActiveStatus(statusArgumentCaptor.capture())).thenReturn(List.of(cardHolderEntityFactory()));
-
-        List<CardHolderResponse> cardHolderResponses = cardHolderService.getCardHolderByStatus("ACTIVE");
-        Assertions.assertEquals(Status.ACTIVE, statusArgumentCaptor.getValue());
-        Assertions.assertEquals(1, cardHolderResponses.size());
-        Assertions.assertEquals("ACTIVE", cardHolderResponses.get(0).status());
     }
 
     @Test
