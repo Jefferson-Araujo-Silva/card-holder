@@ -117,8 +117,8 @@ public class CardHolderServiceTest {
 
     @Test
     public void should_throws_NoCreditAnalysisApprovedException_if_credit_analysis_is_not_approved() {
-        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenReturn(
-                List.of(creditAnalysisDtoFactory().toBuilder().id(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf")).approved(false).build()));
+        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenReturn(List.of(creditAnalysisDtoFactory()
+                .toBuilder().id(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf")).approved(false).build()));
 
         NoCreditAnalysisApprovedException exception = Assertions.assertThrows(NoCreditAnalysisApprovedException.class,
                 () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
