@@ -1,5 +1,5 @@
 server:
-  port: 8083
+  port: 8082
 spring:
   application:
     name: card-holder-app
@@ -16,7 +16,7 @@ spring:
     init:
       continue-on-error: true
   datasource:
-    url: jdbc:postgresql://localhost:5434/postgres
+    url: jdbc:postgresql://postgres-cardholder:5432/postgres
     username: admin
     password: senha123
     driver-class-name: org.postgresql.Driver
@@ -34,4 +34,4 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQL9Dialect
 #172.23.0.1
 url:
-  analysis.host: http://localhost:8081/v1.0/credit/analysis
+  analysis.host: http://172.23.0.1:8081/v1.0/credit/analysis
