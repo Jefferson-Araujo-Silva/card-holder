@@ -8,6 +8,8 @@ import cardholder.controller.request.CardHolderRequest;
 import cardholder.controller.response.CardHolderResponse;
 import cardholder.exception.CardHolderAlreadyExistsException;
 import cardholder.exception.CardHolderNotFoundException;
+import cardholder.exception.ClientNotCorrespondsException;
+import cardholder.exception.CreditAnalysisNotFound;
 import cardholder.exception.NoCreditAnalysisApprovedException;
 import cardholder.mapper.CardHolderEntityMapper;
 import cardholder.mapper.CardHolderEntityMapperImpl;
@@ -22,9 +24,13 @@ import cardholder.repository.entity.BankAccountEntity;
 import cardholder.repository.entity.CardHolderEntity;
 import cardholder.service.CardHolderService;
 import cardholder.util.Status;
+import feign.FeignException;
+import feign.Request;
+import feign.Response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
@@ -148,13 +154,21 @@ public class CardHolderServiceTest {
         Assertions.assertEquals("No card holders registered", exception.getMessage());
     }
     @Test
-    public void should_throws_CardHolderNotFoundException_if_card_holder_not_found() {
+    public void should_throws_CardHolderNotFoundException_if_card_holder_not_found_when_try_to_find_card_holders_by_status() {
         List<CardHolderEntity> cardHolderEntitiesEmpty = List.of();
         when(cardHolderRepository.findAllByActiveStatus(statusArgumentCaptor.capture())).thenReturn(cardHolderEntitiesEmpty);
         CardHolderNotFoundException exception =
                 Assertions.assertThrows(CardHolderNotFoundException.class, () -> cardHolderService.getCardHolderByStatus("INACTIVE"));
         Assertions.assertEquals("CardHolder not found by status INACTIVE", exception.getMessage());
     }
+
+    @Test
+    public void should_throws_CardHolderNotFoundException_if_card_holder_not_found_when_try_to_find_all_card_holders() {
+        List<CardHolderEntity> cardHolderEntitiesEmpty = List.of();
+        when(cardHolderRepository.findAll()).thenReturn(cardHolderEntitiesEmpty);
+        Assertions.assertThrows(CardHolderNotFoundException.class, () -> cardHolderService.getAllCardHolders());
+    }
+
 
     @Test
     public void should_return_all_card_holders() {
@@ -182,5 +196,46 @@ public class CardHolderServiceTest {
         CardHolderNotFoundException exception = Assertions.assertThrows(CardHolderNotFoundException.class,
                 () -> cardHolderService.findCardHolderById(UUID.fromString("a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf")));
         Assertions.assertEquals("CardHolder not found by id a6c4c4ba-f780-4eb8-bcea-0c14ea2132bf", exception.getMessage());
+    }
+
+    @Test
+    public void should_throws_ClientNotCorrespondsException_when_client_id_card_holder_request_not_corresponds_with_client_id_in_credit_analysis() {
+        CardHolderRequest request = cardHolderRequestFactory().toBuilder().clientId(UUID.randomUUID()).build();
+        CreditAnalysisDto creditAnalysisDto = creditAnalysisDtoFactory().toBuilder().clientId(UUID.randomUUID()).build();
+        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenReturn(List.of(creditAnalysisDto));
+
+        ClientNotCorrespondsException exception =
+                Assertions.assertThrows(ClientNotCorrespondsException.class, () -> cardHolderService.createNewCardHolder(request));
+        Assertions.assertEquals(
+                "Client with id %s not corresponds with credit analysis with id %s".formatted(request.clientId(), creditAnalysisDto.id()),
+                exception.getMessage());
+    }
+
+    @Test
+    public void should_throws_CreditAnalysisNotFound_when_api_credit_analysis_return_an_feign_exception_with_status_404() {
+        FeignException feignException = FeignException.errorStatus("Credit analysis not found",
+                Response.builder()
+                        .status(404)
+                        .reason("Not Found")
+                        .request(Request.create(Request.HttpMethod.GET, "", Map.of(), null, null, null))
+                        .build());
+        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenThrow(feignException);
+
+        CreditAnalysisNotFound exception = Assertions.assertThrows(CreditAnalysisNotFound.class,
+                () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
+        Assertions.assertEquals("Credit analysis with id %s not found".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
+    }
+
+    @Test
+    public void should_throw_feign_exception_if_returned_any_status_different_of_404_on_api_credit_analysis() {
+        FeignException feignException = FeignException.errorStatus("Credit analysis not found",
+                Response.builder()
+                        .status(500)
+                        .reason("Internal Server Error")
+                        .request(Request.create(Request.HttpMethod.GET, "", Map.of(), null, null, null))
+                        .build());
+        when(cardHolderApiAnalysis.getCreditAnalysis(uuidArgumentCaptor.capture())).thenThrow(feignException);
+
+        Assertions.assertThrows(FeignException.class, () -> cardHolderService.createNewCardHolder(cardHolderRequestFactory()));
     }
 }
