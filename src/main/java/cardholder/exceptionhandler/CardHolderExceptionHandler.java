@@ -170,13 +170,14 @@ public class CardHolderExceptionHandler {
         LOOGER.error(String.valueOf(exception));
         final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.NOT_FOUND);
         problemDetail.setType(URI.create("http://example.com/not-found"));
-        problemDetail.setTitle("Credit analysis not found");
+        problemDetail.setTitle("Credit card not found");
         problemDetail.setStatus(HttpStatus.NOT_FOUND.value());
         problemDetail.setDetail(exception.getMessage());
-        problemDetail.setInstance(URI.create("/card-holders"));
+        problemDetail.setInstance(URI.create("/card-holders/idCardHolder/cards/id"));
         problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
         return problemDetail;
     }
+
     @ExceptionHandler(ThresholdValueRequestException.class)
     public ProblemDetail thresholdValueRequestException(ThresholdValueRequestException exception) {
         MDC.put("correlationId", UUID.randomUUID().toString());
@@ -184,7 +185,7 @@ public class CardHolderExceptionHandler {
         final ProblemDetail problemDetail = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
         problemDetail.setType(URI.create("http://example.com/bad-request"));
         problemDetail.setTitle("Invalid value");
-        problemDetail.setStatus(HttpStatus.NOT_FOUND.value());
+        problemDetail.setStatus(HttpStatus.BAD_REQUEST.value());
         problemDetail.setDetail(exception.getMessage());
         problemDetail.setInstance(URI.create("/card-holders/idCardHolder/cards/id"));
         problemDetail.setProperty(TIMESTAMP, LocalDateTime.now());
