@@ -1,7 +1,7 @@
 package cardholder.model;
 
 import cardholder.api.analysisdto.CreditAnalysisDto;
-import cardholder.util.Status;
+import cardholder.model.statusenum.Status;
 import java.math.BigDecimal;
 import java.util.UUID;
 import lombok.Builder;

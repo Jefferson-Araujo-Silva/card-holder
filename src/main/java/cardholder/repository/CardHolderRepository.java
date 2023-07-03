@@ -1,7 +1,7 @@
 package cardholder.repository;
 
 import cardholder.repository.entity.CardHolderEntity;
-import cardholder.util.Status;
+import cardholder.model.statusenum.Status;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
