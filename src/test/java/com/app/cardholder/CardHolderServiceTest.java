@@ -22,7 +22,7 @@ import cardholder.repository.CardHolderRepository;
 import cardholder.repository.entity.BankAccountEntity;
 import cardholder.repository.entity.CardHolderEntity;
 import cardholder.service.CardHolderService;
-import cardholder.util.Status;
+import cardholder.model.statusenum.Status;
 import feign.FeignException;
 import feign.Request;
 import feign.Response;
