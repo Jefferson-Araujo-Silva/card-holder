@@ -23,6 +23,7 @@ import cardholder.service.CreditCardService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
@@ -65,8 +66,7 @@ public class CreditCardServiceTest {
 
     public static CreditCardEntity creditCardEntityFactory() {
         return CreditCardEntity.builder().cardHolder(CardHolderServiceTest.cardHolderEntityFactory()).cardNumber("4483346541790809").cvv("123")
-                .dueDate(
-                        LocalDate.parse("2028-01-01")).creditLimit(new BigDecimal("100")).build();
+                .dueDate(LocalDate.parse("2028-01-01")).creditLimit(new BigDecimal("100")).build();
     }
 
     public static CardHolderEntity cardHolderEntityFactory() {
@@ -118,6 +118,7 @@ public class CreditCardServiceTest {
 
         Assertions.assertEquals("No limit available for card holder with id %s".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
     }
+
     @Test
     public void should_return_all_credit_cards_from_card_holder_id() {
         when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntityFactory()));
@@ -127,6 +128,7 @@ public class CreditCardServiceTest {
         Assertions.assertNotNull(response);
         Assertions.assertEquals(1, response.size());
     }
+
     @Test
     public void should_throws_CreditCardNotFoundException_when_return_nothing() {
         when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of());
@@ -138,36 +140,39 @@ public class CreditCardServiceTest {
                 "No credit cards found for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue()),
                 exception.getMessage());
     }
+
     @Test
     public void should_return_one_credit_card_from_card_id() {
         CreditCardEntity creditCardEntity = creditCardEntityFactory();
-        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntity));
+        when(creditCardRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.of(creditCardEntity));
 
         CreditCardResponse response = service.getCreditCardsByCreditCardId(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId());
 
         Assertions.assertNotNull(response);
     }
+
     @Test
     public void should_throws_CreditCardNotFoundException_when_return_nothing_on_getByCardId() {
-        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of());
+        when(creditCardRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.empty());
         UUID creditCardId = UUID.randomUUID();
-
+        CardHolderEntity cardHolder = cardHolderEntityFactory();
         CreditCardNotFoundException exception = Assertions.assertThrows(CreditCardNotFoundException.class,
-                () -> service.getCreditCardsByCreditCardId(cardHolderEntityFactory().getId(), creditCardId));
+                () -> service.getCreditCardsByCreditCardId(cardHolder.getId(), creditCardId));
 
         Assertions.assertEquals(
-                "No credit cards found for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue()),
-                exception.getMessage());
+                "No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue(),
+                        cardHolder.getId()), exception.getMessage());
     }
 
     @Test
     public void should_throws_CreditCardNotFoundException_when_id_not_found_on_list() {
-        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntityFactory()));
+        when(creditCardRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.of(creditCardEntityFactory()));
         UUID creditCardId = UUID.randomUUID();
+        CardHolderEntity  cardHolder = cardHolderEntityFactory();
         CreditCardNotFoundException exception = Assertions.assertThrows(CreditCardNotFoundException.class,
-                () -> service.getCreditCardsByCreditCardId(cardHolderEntityFactory().getId(), creditCardId));
+                () -> service.getCreditCardsByCreditCardId(cardHolder.getId(), creditCardId));
 
-        Assertions.assertEquals("No credit cards found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId,
-                uuidArgumentCaptor.getValue()), exception.getMessage());
+        Assertions.assertEquals("No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue(),
+                cardHolder.getId()), exception.getMessage());
     }
 }
