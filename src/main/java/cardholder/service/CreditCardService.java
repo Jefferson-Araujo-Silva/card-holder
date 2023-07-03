@@ -16,6 +16,7 @@ import cardholder.repository.entity.CreditCardEntity;
 import cardholder.repository.entity.CreditCardRepository;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -85,13 +86,9 @@ public class CreditCardService {
     }
 
     private CreditCardEntity getCreditCardEntityByCreditCardId(UUID cardHolderId, UUID creditCardId) {
-        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
-        if (creditCardEntities.isEmpty()) {
-            throw new CreditCardNotFoundException(
-                    "No credit cards found for card holder with id %s, or card holder not exists".formatted(cardHolderId));
-        }
+        final Optional<CreditCardEntity> creditCardEntity = repository.findById(creditCardId);
 
-        return creditCardEntities.stream().filter(e -> e.getId().equals(creditCardId)).findFirst().orElseThrow(() -> new CreditCardNotFoundException(
-                "No credit cards found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId, cardHolderId)));
+        return creditCardEntity.stream().filter(e -> e.getId().equals(creditCardId)).findFirst().orElseThrow(() -> new CreditCardNotFoundException(
+                "No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId, cardHolderId)));
     }
 }
