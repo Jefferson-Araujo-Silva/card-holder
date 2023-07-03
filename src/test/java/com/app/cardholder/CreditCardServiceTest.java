@@ -181,8 +181,7 @@ public class CreditCardServiceTest {
     @Test
     public void should_atualize_credit_card_limit() {
         CreditCardEntity creditCardEntity = creditCardEntityFactory();
-        CreditCardEntity creditCardEntity2 = creditCardEntityFactory();
-        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntity, creditCardEntity2));
+        when(creditCardRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.of(creditCardEntity));
         when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolderEntityFactory());
         CreditCardUpdateLimitResponse response =
                 service.updateCreditCardLimit(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId(), new BigDecimal("10"));
