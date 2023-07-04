@@ -1,0 +1,37 @@
+server:
+  port: 8082
+spring:
+  application:
+    name: card-holder-app
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          clientApi:
+            connectTimeout: 3000
+            readTimeout: 500
+            loggerLevel: BASIC
+  sql:
+    init:
+      continue-on-error: true
+  datasource:
+    url: jdbc:postgresql://postgres-cardholder:5432/postgres
+    username: admin
+    password: senha123
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 0
+      maximum-pool-size: 15
+      connection-timeout: 3000
+      idle-timeout: 300000
+      max-lifetime: 600000
+      initialization-fail-timeout: -1
+      validation-timeout: 1000
+  jpa:
+    generate-ddl: false
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+#172.23.0.1
+url:
+  analysis.host: http://172.23.0.1:8081/v1.0/credit/analysis
