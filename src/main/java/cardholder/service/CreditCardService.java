@@ -59,13 +59,12 @@ public class CreditCardService {
         }
     }
 
-    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder,
-                                                            BigDecimal creditLimitRequested) {
+    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested) {
         final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId);
         BigDecimal creditLimitAvailable;
-        if(sumOfLimits != null) {
+        if (sumOfLimits != null) {
             creditLimitAvailable = creditLimitForCardHolder.subtract(sumOfLimits).add(creditLimitRequested);
-        }else {
+        } else {
             creditLimitAvailable = creditLimitForCardHolder.subtract(creditLimitRequested);
         }
         if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
