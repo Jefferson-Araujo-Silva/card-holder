@@ -60,13 +60,18 @@ public class CreditCardService {
     }
 
     private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested) {
-        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId);
-        BigDecimal creditLimitAvailable;
-        if (sumOfLimits != null) {
-            creditLimitAvailable = creditLimitForCardHolder.subtract(sumOfLimits).add(creditLimitRequested);
-        } else {
-            creditLimitAvailable = creditLimitForCardHolder.subtract(creditLimitRequested);
+        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId, null);
+        BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
+
+        if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
+            throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
         }
+    }
+
+    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested,
+                                                            UUID creditCardId) {
+        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId, creditCardId);
+        BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
         if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
             throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
         }
@@ -110,7 +115,7 @@ public class CreditCardService {
         }
         final CardHolderEntity cardHolder = getCardHolderById(cardHolderId);
         verifyLimitRequestedComparedByCreditLimit(limit, cardHolder.getCreditLimit());
-        calculateCreditLimitAvailableForCardHolder(cardHolderId, cardHolder.getCreditLimit(), limit);
+        calculateCreditLimitAvailableForCardHolder(cardHolderId, cardHolder.getCreditLimit(), limit, creditCardId);
         repository.updateLimitFromId(creditCardId, limit);
     }
 }
