@@ -59,26 +59,14 @@ public class CreditCardService {
         }
     }
 
-    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested) {
-        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
-        BigDecimal creditLimitAvailable = creditLimitForCardHolder;
-        for (CreditCardEntity creditCardEntity : creditCardEntities) {
-            creditLimitAvailable = creditLimitAvailable.subtract(creditCardEntity.getCreditLimit());
-        }
-        if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
-            throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
-        }
-    }
-
-    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, UUID creditCardId,
+    private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder,
                                                             BigDecimal creditLimitRequested) {
-        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
-        final List<CreditCardEntity> creditCardEntityListWithoutCreditCardIdPassed =
-                creditCardEntities.stream().filter(creditCardEntity -> !creditCardEntity.getId().equals(creditCardId)).toList();
-
-        BigDecimal creditLimitAvailable = creditLimitForCardHolder;
-        for (CreditCardEntity creditCardEntity : creditCardEntityListWithoutCreditCardIdPassed) {
-            creditLimitAvailable = creditLimitAvailable.subtract(creditCardEntity.getCreditLimit());
+        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId);
+        BigDecimal creditLimitAvailable;
+        if(sumOfLimits != null) {
+            creditLimitAvailable = creditLimitForCardHolder.subtract(sumOfLimits).add(creditLimitRequested);
+        }else {
+            creditLimitAvailable = creditLimitForCardHolder.subtract(creditLimitRequested);
         }
         if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
             throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
@@ -123,7 +111,7 @@ public class CreditCardService {
         }
         final CardHolderEntity cardHolder = getCardHolderById(cardHolderId);
         verifyLimitRequestedComparedByCreditLimit(limit, cardHolder.getCreditLimit());
-        calculateCreditLimitAvailableForCardHolder(cardHolderId, cardHolder.getCreditLimit(), creditCardId, limit);
+        calculateCreditLimitAvailableForCardHolder(cardHolderId, cardHolder.getCreditLimit(), limit);
         repository.updateLimitFromId(creditCardId, limit);
     }
 }
