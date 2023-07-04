@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface CreditCardRepository extends JpaRepository<CreditCardEntity, UUID> {
@@ -16,6 +17,9 @@ public interface CreditCardRepository extends JpaRepository<CreditCardEntity, UU
 
     @Query("SELECT SUM(c.creditLimit) FROM CreditCardEntity c WHERE c.cardHolder.id = :cardHolderId AND (:creditCardId IS NULL OR c.id <> :creditCardId)")
     BigDecimal getTotalCreditLimitByCardHolderId(@Param("cardHolderId") UUID cardHolderId, @Param("creditCardId") UUID creditCardId);
+
+    @Query("SELECT SUM(c.creditLimit) FROM CreditCardEntity c WHERE c.cardHolder.id = :cardHolderId")
+    BigDecimal getTotalCreditLimitByCardHolderId(@Param("cardHolderId") UUID cardHolderId);
 
     List<CreditCardEntity> findAllByCardHolderId(UUID cardHolderId);
 }

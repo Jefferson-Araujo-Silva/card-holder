@@ -70,25 +70,4 @@ public class CreditCardService {
     private CreditCardEntity saveCreditCard(CreditCardEntity entity) {
         return repository.save(entity);
     }
-
-    public List<CreditCardResponse> getCreditCardsByCardHolderId(UUID cardHolderId) {
-        final List<CreditCardEntity> creditCardEntities = repository.findAllByCardHolderId(cardHolderId);
-        if (creditCardEntities.isEmpty()) {
-            throw new CreditCardNotFoundException(
-                    "No credit cards found for card holder with id %s, or card holder not exists".formatted(cardHolderId));
-        }
-        return creditCardEntities.stream().map(responseMapper::from).collect(Collectors.toList());
-    }
-
-    public CreditCardResponse getCreditCardsByCreditCardId(UUID cardHolderId, UUID creditCardId) {
-        final CreditCardEntity entity = getCreditCardEntityByCreditCardId(cardHolderId, creditCardId);
-        return responseMapper.from(entity);
-    }
-
-    private CreditCardEntity getCreditCardEntityByCreditCardId(UUID cardHolderId, UUID creditCardId) {
-        final Optional<CreditCardEntity> creditCardEntity = repository.findById(creditCardId);
-
-        return creditCardEntity.stream().filter(e -> e.getId().equals(creditCardId)).findFirst().orElseThrow(() -> new CreditCardNotFoundException(
-                "No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(creditCardId, cardHolderId)));
-    }
 }
