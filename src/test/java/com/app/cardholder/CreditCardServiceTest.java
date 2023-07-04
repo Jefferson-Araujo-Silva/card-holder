@@ -88,6 +88,7 @@ public class CreditCardServiceTest {
     public void should_create_new_credit_card() {
         CardHolderEntity cardHolderEntity = cardHolderEntityFactory();
         when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolderEntity);
+        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture(), uuidArgumentCaptor.capture())).thenReturn(null);
         when(creditCardRepository.save(creditCardEntityArgumentCaptor.capture())).thenReturn(creditCardEntityFactory());
 
         CreditCardResponse response = service.createNewCreditCard(cardHolderEntity.getId(), creditCardRequestFactory());
@@ -113,12 +114,11 @@ public class CreditCardServiceTest {
         CreditCardRequest request = creditCardRequestFactory().toBuilder().limit(new BigDecimal("10")).build();
         CardHolderEntity cardHolder = cardHolderEntityFactory().toBuilder().creditLimit(new BigDecimal("100")).build();
         when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolder);
-        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(
-                List.of(creditCardEntityFactory().toBuilder().creditLimit(new BigDecimal("99")).build()));
+        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture(), uuidArgumentCaptor.capture())).thenReturn(new BigDecimal("99"));
         NoLimitAvailableException exception =
                 Assertions.assertThrows(NoLimitAvailableException.class, () -> service.createNewCreditCard(cardHolder.getId(), request));
 
-        Assertions.assertEquals("No limit available for card holder with id %s".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
+        Assertions.assertEquals("No limit available for card holder with id %s".formatted(cardHolder.getId()), exception.getMessage());
     }
 
     @Test
@@ -170,12 +170,13 @@ public class CreditCardServiceTest {
     public void should_throws_CreditCardNotFoundException_when_id_not_found_on_list() {
         when(creditCardRepository.findById(uuidArgumentCaptor.capture())).thenReturn(Optional.of(creditCardEntityFactory()));
         UUID creditCardId = UUID.randomUUID();
-        CardHolderEntity  cardHolder = cardHolderEntityFactory();
+        CardHolderEntity cardHolder = cardHolderEntityFactory();
         CreditCardNotFoundException exception = Assertions.assertThrows(CreditCardNotFoundException.class,
                 () -> service.getCreditCardsByCreditCardId(cardHolder.getId(), creditCardId));
 
-        Assertions.assertEquals("No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue(),
-                cardHolder.getId()), exception.getMessage());
+        Assertions.assertEquals(
+                "No credit card found with id %s for card holder with id %s, or card holder not exists".formatted(uuidArgumentCaptor.getValue(),
+                        cardHolder.getId()), exception.getMessage());
     }
 
     @Test
@@ -197,15 +198,20 @@ public class CreditCardServiceTest {
                 () -> service.updateCreditCardLimit(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId(), new BigDecimal("-1000")));
         Assertions.assertEquals("Limit requested is less than zero", exception.getMessage());
     }
+
     @Test
     public void should_throws_NoLimitAvailableException_when_try_to_update_limit_more_than_available() {
+        UUID cardHolderId = UUID.randomUUID();
         CreditCardEntity creditCardEntity = creditCardEntityFactory();
-        CreditCardEntity creditCardEntity2 = creditCardEntityFactory();
-        when(creditCardRepository.findAllByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(List.of(creditCardEntity, creditCardEntity2));
-        when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolderEntityFactory());
-        NoLimitAvailableException exception =
-                Assertions.assertThrows(NoLimitAvailableException.class, ()-> service.updateCreditCardLimit(creditCardEntity.getCardHolder().getId(), creditCardEntity.getId(), new BigDecimal("1000")));
 
-        Assertions.assertEquals("No limit available for card holder with id %s".formatted(uuidArgumentCaptor.getValue()), exception.getMessage());
+        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture(), uuidArgumentCaptor.capture())).thenReturn(
+                new BigDecimal(1000));
+        when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(
+                cardHolderEntityFactory().toBuilder().id(cardHolderId).build());
+
+        NoLimitAvailableException exception = Assertions.assertThrows(NoLimitAvailableException.class,
+                () -> service.updateCreditCardLimit(cardHolderId, creditCardEntity.getId(), new BigDecimal("1000")));
+
+        Assertions.assertEquals("No limit available for card holder with id %s".formatted(cardHolderId), exception.getMessage());
     }
 }

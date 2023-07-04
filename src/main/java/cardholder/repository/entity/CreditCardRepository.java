@@ -15,7 +15,8 @@ public interface CreditCardRepository extends JpaRepository<CreditCardEntity, UU
     @Query("UPDATE CreditCardEntity c SET c.creditLimit = :creditLimit WHERE c.id = :id")
     void updateLimitFromId(UUID id, BigDecimal creditLimit);
 
-    @Query("SELECT SUM(c.creditLimit) FROM CreditCardEntity c WHERE c.cardHolder.id = :cardHolderId AND (:creditCardId IS NULL OR c.id <> :creditCardId)")
+    @Query("SELECT SUM(c.creditLimit) FROM CreditCardEntity c WHERE c.cardHolder.id = :cardHolderId "
+            + "AND (:creditCardId IS NULL OR c.id <> :creditCardId)")
     BigDecimal getTotalCreditLimitByCardHolderId(@Param("cardHolderId") UUID cardHolderId, @Param("creditCardId") UUID creditCardId);
 
     List<CreditCardEntity> findAllByCardHolderId(UUID cardHolderId);

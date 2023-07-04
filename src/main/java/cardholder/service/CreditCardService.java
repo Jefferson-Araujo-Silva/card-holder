@@ -61,7 +61,7 @@ public class CreditCardService {
 
     private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested) {
         final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId, null);
-        BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
+        final BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
 
         if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
             throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
@@ -71,7 +71,7 @@ public class CreditCardService {
     private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested,
                                                             UUID creditCardId) {
         final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId, creditCardId);
-        BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
+        final BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
         if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
             throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
         }
