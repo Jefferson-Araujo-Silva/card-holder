@@ -11,9 +11,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface CardHolderApiAnalysis {
     @GetMapping(path = "/{id}")
     List<CreditAnalysisDto> getCreditAnalysis(@PathVariable(value = "id") UUID id);
-
-    @GetMapping(path = "?cpf={cpf}")
-    List<CreditAnalysisDto> getCreditAnalysisByCpf(@PathVariable(value = "cpf") String cpf);
-
 }
 
