@@ -1,7 +1,5 @@
 package com.app.cardholder;
 
-import static org.mockito.Mockito.when;
-
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
 import cardholder.controller.response.CreditCardUpdateLimitResponse;
@@ -9,12 +7,7 @@ import cardholder.exception.CreditCardNotFoundException;
 import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
-import cardholder.mapper.CreditCardEntityMapper;
-import cardholder.mapper.CreditCardEntityMapperImpl;
-import cardholder.mapper.CreditCardModelMapper;
-import cardholder.mapper.CreditCardModelMapperImpl;
-import cardholder.mapper.CreditCardResponseMapper;
-import cardholder.mapper.CreditCardResponseMapperImpl;
+import cardholder.mapper.*;
 import cardholder.model.CreditCardModel;
 import cardholder.repository.CardHolderRepository;
 import cardholder.repository.entity.CardHolderEntity;
@@ -22,22 +15,21 @@ import cardholder.repository.entity.CreditCardEntity;
 import cardholder.repository.entity.CreditCardRepository;
 import cardholder.service.CardHolderService;
 import cardholder.service.CreditCardService;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayNameGeneration(DisplayNameGenerator.ReplaceUnderscores.class)
@@ -88,7 +80,7 @@ public class CreditCardServiceTest {
     public void should_create_new_credit_card() {
         CardHolderEntity cardHolderEntity = cardHolderEntityFactory();
         when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolderEntity);
-        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture(), uuidArgumentCaptor.capture())).thenReturn(null);
+        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(null);
         when(creditCardRepository.save(creditCardEntityArgumentCaptor.capture())).thenReturn(creditCardEntityFactory());
 
         CreditCardResponse response = service.createNewCreditCard(cardHolderEntity.getId(), creditCardRequestFactory());
@@ -114,7 +106,7 @@ public class CreditCardServiceTest {
         CreditCardRequest request = creditCardRequestFactory().toBuilder().limit(new BigDecimal("10")).build();
         CardHolderEntity cardHolder = cardHolderEntityFactory().toBuilder().creditLimit(new BigDecimal("100")).build();
         when(cardHolderService.getCardHolderById(uuidArgumentCaptor.capture())).thenReturn(cardHolder);
-        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture(), uuidArgumentCaptor.capture())).thenReturn(new BigDecimal("99"));
+        when(creditCardRepository.getTotalCreditLimitByCardHolderId(uuidArgumentCaptor.capture())).thenReturn(new BigDecimal("99"));
         NoLimitAvailableException exception =
                 Assertions.assertThrows(NoLimitAvailableException.class, () -> service.createNewCreditCard(cardHolder.getId(), request));
 
