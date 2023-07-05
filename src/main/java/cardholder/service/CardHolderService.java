@@ -49,8 +49,8 @@ public class CardHolderService {
                 throw new NoCreditAnalysisApprovedException("Credit analysis with id %s is not approved".formatted(idAnalysis));
             }
             if (!creditAnalysis.clientId().equals(clientId)) {
-                throw new ClientNotCorrespondsException(
-                        "Client with id %s not corresponds with credit analysis with id %s".formatted(clientId, idAnalysis));
+                throw new ClientNotCorrespondsException("Client with id %s not corresponds with credit analysis with id %s"
+                        .formatted(clientId, idAnalysis));
             }
             return creditAnalysis;
         } catch (FeignException e) {

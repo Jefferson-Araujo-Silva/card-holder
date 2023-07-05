@@ -2,23 +2,17 @@ package cardholder.service;
 
 import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CreditCardResponse;
-import cardholder.controller.response.CreditCardUpdateLimitResponse;
-import cardholder.exception.CreditCardNotFoundException;
-import cardholder.exception.NegativeValueException;
 import cardholder.exception.NoLimitAvailableException;
 import cardholder.exception.ThresholdValueRequestException;
 import cardholder.mapper.CreditCardEntityMapper;
 import cardholder.mapper.CreditCardModelMapper;
 import cardholder.mapper.CreditCardResponseMapper;
 import cardholder.model.CreditCardModel;
+import cardholder.repository.CreditCardRepository;
 import cardholder.repository.entity.CardHolderEntity;
 import cardholder.repository.entity.CreditCardEntity;
-import cardholder.repository.entity.CreditCardRepository;
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -60,13 +54,13 @@ public class CreditCardService {
     }
 
     private void calculateCreditLimitAvailableForCardHolder(UUID cardHolderId, BigDecimal creditLimitForCardHolder, BigDecimal creditLimitRequested) {
-        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId, null);
-        BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
-
+        final BigDecimal sumOfLimits = repository.getTotalCreditLimitByCardHolderId(cardHolderId);
+        final BigDecimal creditLimitAvailable = sumOfLimits == null ? creditLimitForCardHolder : creditLimitForCardHolder.subtract(sumOfLimits);
         if (creditLimitRequested.compareTo(creditLimitAvailable) > 0) {
             throw new NoLimitAvailableException("No limit available for card holder with id %s".formatted(cardHolderId));
         }
     }
+
     private CreditCardEntity saveCreditCard(CreditCardEntity entity) {
         return repository.save(entity);
     }

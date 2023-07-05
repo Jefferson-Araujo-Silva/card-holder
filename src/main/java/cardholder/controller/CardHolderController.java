@@ -1,6 +1,7 @@
 package cardholder.controller;
 
 import cardholder.controller.request.CardHolderRequest;
+import cardholder.controller.request.CreditCardRequest;
 import cardholder.controller.response.CardHolderResponse;
 import cardholder.controller.response.CreditCardResponse;
 import cardholder.service.CardHolderService;
@@ -61,20 +62,5 @@ public class CardHolderController {
         MDC.put("correlationId", UUID.randomUUID().toString());
         LOGGER.info("Received an post requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
         return creditCardService.createNewCreditCard(cardHolderId, request);
-    }
-
-    @GetMapping(path = "/{cardHolderId}/cards")
-    public List<CreditCardResponse> getCreditCardsByCardHolderId(@PathVariable(value = "cardHolderId") UUID cardHolderId) {
-        MDC.put("correlationId", UUID.randomUUID().toString());
-        LOGGER.info("Received an get requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
-        return creditCardService.getCreditCardsByCardHolderId(cardHolderId);
-    }
-
-    @GetMapping(path = "/{cardHolderId}/cards/{id}")
-    public CreditCardResponse getCreditCardsByCreditCard(@PathVariable(value = "cardHolderId") UUID cardHolderId,
-                                                         @PathVariable(value = "id") UUID id) {
-        MDC.put("correlationId", UUID.randomUUID().toString());
-        LOGGER.info("Received an get requisition at endpoint %s/%s/cards".formatted(PATH_DEFAULT_ENDPOINT, cardHolderId));
-        return creditCardService.getCreditCardsByCreditCardId(cardHolderId, id);
     }
 }
