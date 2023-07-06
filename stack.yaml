@@ -1,0 +1,36 @@
+services:
+  postgres-cardholder:
+    image: postgres
+    container_name: postgres-cardholder
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: senha123
+    ports:
+      - "5434:5432"
+    networks:
+      - mynetwork
+  cardholderapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8080"
+    networks:
+      - mynetwork
+    depends_on:
+      - postgres-cardholder
+    environment:
+      - POSTGRES_URL=jdbc:postgresql://postgres:5432/postgres
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=senha123
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8060:8080
+networks:
+  mynetwork:
+    external: true
+volumes:
+  postgres-data:
